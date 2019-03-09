@@ -172,8 +172,6 @@ C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\Microsoft.AspNetCore.
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\System.Numerics.Vectors.xml
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\ECommerce.Data.dll
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\ECommerce.Data.dll.config
-C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\x86\e_sqlite3.dll
-C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\x64\e_sqlite3.dll
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\WebActivatorEx.dll
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\Ninject.dll
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\Ninject.Web.Common.dll

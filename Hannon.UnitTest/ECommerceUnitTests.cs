@@ -8,11 +8,12 @@ using System.Web;
 using ECommerce.Controllers;
 using ECommerce.Data.Repository;
 using ECommerce.Models;
+using ECommerce.Services.Catalog.Impl;
 using Moq;
 namespace Hannon.UnitTest
 {
     [TestClass]
-    public class TwoFactorAuthUnitTests
+    public class ECommerceUnitTests
     {
         private int _twoFactorAuthTimeSpan;
         private string _twoFactorAuthCookie;
@@ -27,7 +28,7 @@ namespace Hannon.UnitTest
         private string _emailPassword;
         private bool _twoFactorEnabled;
 
-        public TwoFactorAuthUnitTests()
+        public ECommerceUnitTests()
         {
             int.TryParse(ConfigurationManager.AppSettings["TwoFactorAuthTimeSpan"], out _twoFactorAuthTimeSpan);
             int.TryParse(ConfigurationManager.AppSettings["TwoFactorTimeOut"], out _twoFactorTimeOut);
@@ -57,6 +58,56 @@ namespace Hannon.UnitTest
         }
 
         [TestMethod]
+        public void VerifyProductService()
+        {
+            PictureBinaryRepository _pictureBinaryRepository = new PictureBinaryRepository(connectionString);
+            PictureRepository _pictureRepository = new PictureRepository(connectionString);
+            ProductAttributeCombinationRepository _productAttributeCombinationRepository = new ProductAttributeCombinationRepository(connectionString);
+            ProductAttributeRepository _productAttributeRepository = new ProductAttributeRepository(connectionString);
+            ProductAttributeValueRepository _productAttributeValueRepository = new ProductAttributeValueRepository(connectionString);
+            ProductAvailabilityRangeRepository _productAvailabilityRangeRepository = new ProductAvailabilityRangeRepository(connectionString);
+            ProductCategoryMappingRepository _productCategoryMappingRepository = new ProductCategoryMappingRepository(connectionString);
+            ProductProductAttributeMappingRepository _productProductAttributeMappingRepository = new ProductProductAttributeMappingRepository(connectionString);
+            ProductTagMappingRepository _productProductTagMappingRepository = new ProductTagMappingRepository(connectionString);
+            ProductSpecificationAttributeRepository _productSpecificationAttributeMappingRepository = new ProductSpecificationAttributeRepository(connectionString);
+            SpecificationAttributeOptionRepository _specificationAttributeOptionRepository = new SpecificationAttributeOptionRepository(connectionString);
+            SpecificationAttributeRepository _specificationAttributeRepository = new SpecificationAttributeRepository(connectionString);
+            ProductRepository _productRepository = new ProductRepository(connectionString);
+            ProductManufacturerMappingRepository _productManufacturerMappingRepository = new ProductManufacturerMappingRepository(connectionString);
+            ProductPictureRepository _productPictureRepository = new ProductPictureRepository(connectionString);
+            ProductReviewsRepository _productReviewsRepository = new ProductReviewsRepository(connectionString);
+            TierPricesRepository _tierPricesRepository = new TierPricesRepository(connectionString);
+            DiscountProductMappingRepository _discountProductMappingRepository = new DiscountProductMappingRepository(connectionString);
+            ProductWarehouseInventoryRepository _productWarehouseInventoryRepository = new ProductWarehouseInventoryRepository(connectionString);
+
+            var productService = new ProductService(
+                _pictureBinaryRepository,
+                _pictureRepository,
+                _productAttributeCombinationRepository,
+                _productAttributeRepository,
+                _productAttributeValueRepository,
+                _productAvailabilityRangeRepository,
+                _productCategoryMappingRepository,
+                _productProductAttributeMappingRepository,
+                _productProductTagMappingRepository,
+                _productSpecificationAttributeMappingRepository,
+                _specificationAttributeOptionRepository,
+                _specificationAttributeRepository,
+                _productRepository,
+                _productManufacturerMappingRepository,
+                _productPictureRepository,
+                _productReviewsRepository,
+                _tierPricesRepository,
+                _discountProductMappingRepository,
+                _productWarehouseInventoryRepository
+                );
+
+            var productModel = productService.GetProductById(7);
+            Assert.IsNotNull(productModel);
+        }
+
+        [TestMethod]
+        [Ignore()]
         public void VerifyDataLayerRepositories()
         {
             var p = new ProductRepository(connectionString);

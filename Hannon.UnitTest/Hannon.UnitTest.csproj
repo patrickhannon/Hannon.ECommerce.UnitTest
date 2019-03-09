@@ -88,7 +88,7 @@
   <ItemGroup>
     <Compile Include="DataLayerUnitTests.cs" />
     <Compile Include="Mocks.cs" />
-    <Compile Include="TwoFactorAuthUnitTests.cs" />
+    <Compile Include="ECommerceUnitTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
