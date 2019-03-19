@@ -1,15 +1,29 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Configuration;
+using System.Linq;
+using System.Linq.Expressions;
 using hannon._2factorAuth;
 using hannon.TwoFactorAuth.Models;
 using hannon._2factorAuth.Models;
 using System.Web;
 using ECommerce.Controllers;
+using ECommerce.Data.Entities.Catalog;
+using ECommerce.Data.Entities.Customers;
+using ECommerce.Data.Entities.Orders;
 using ECommerce.Data.Repository;
 using ECommerce.Models;
+using ECommerce.Services;
+using ECommerce.Services.Catalog;
 using ECommerce.Services.Catalog.Impl;
+using ECommerce.Services.Customer;
+using ECommerce.Services.Customer.Impl;
+using ECommerce.Services.Impl;
+using ECommerce.Services.Menu;
+using ECommerce.Services.Menu.Impl;
 using Moq;
+using Nop.Core.Domain.Common;
+
 namespace Hannon.UnitTest
 {
     [TestClass]
@@ -27,6 +41,11 @@ namespace Hannon.UnitTest
         public string connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
         private string _emailPassword;
         private bool _twoFactorEnabled;
+        private IMenuService _menuService;
+        private ICategoryService _categoryService;
+        private ICartService _cartService;
+        private IProductService _productService;
+        private ICustomerService _customerService;
 
         public ECommerceUnitTests()
         {
@@ -53,34 +72,42 @@ namespace Hannon.UnitTest
                 TwoFactorEnabled = _twoFactorEnabled,
                 EmailPassword = _emailPassword
             };
-            //_identity = new TranparentIdentity();
             _twoFactorAuth = new TwoFactorAuth(smsConfigs);
-        }
 
-        [TestMethod]
-        public void VerifyProductService()
-        {
-            PictureBinaryRepository _pictureBinaryRepository = new PictureBinaryRepository(connectionString);
-            PictureRepository _pictureRepository = new PictureRepository(connectionString);
-            ProductAttributeCombinationRepository _productAttributeCombinationRepository = new ProductAttributeCombinationRepository(connectionString);
-            ProductAttributeRepository _productAttributeRepository = new ProductAttributeRepository(connectionString);
-            ProductAttributeValueRepository _productAttributeValueRepository = new ProductAttributeValueRepository(connectionString);
-            ProductAvailabilityRangeRepository _productAvailabilityRangeRepository = new ProductAvailabilityRangeRepository(connectionString);
-            ProductCategoryMappingRepository _productCategoryMappingRepository = new ProductCategoryMappingRepository(connectionString);
-            ProductProductAttributeMappingRepository _productProductAttributeMappingRepository = new ProductProductAttributeMappingRepository(connectionString);
-            ProductTagMappingRepository _productProductTagMappingRepository = new ProductTagMappingRepository(connectionString);
-            ProductSpecificationAttributeRepository _productSpecificationAttributeMappingRepository = new ProductSpecificationAttributeRepository(connectionString);
-            SpecificationAttributeOptionRepository _specificationAttributeOptionRepository = new SpecificationAttributeOptionRepository(connectionString);
-            SpecificationAttributeRepository _specificationAttributeRepository = new SpecificationAttributeRepository(connectionString);
-            ProductRepository _productRepository = new ProductRepository(connectionString);
-            ProductManufacturerMappingRepository _productManufacturerMappingRepository = new ProductManufacturerMappingRepository(connectionString);
-            ProductPictureRepository _productPictureRepository = new ProductPictureRepository(connectionString);
-            ProductReviewsRepository _productReviewsRepository = new ProductReviewsRepository(connectionString);
-            TierPricesRepository _tierPricesRepository = new TierPricesRepository(connectionString);
-            DiscountProductMappingRepository _discountProductMappingRepository = new DiscountProductMappingRepository(connectionString);
-            ProductWarehouseInventoryRepository _productWarehouseInventoryRepository = new ProductWarehouseInventoryRepository(connectionString);
+            //repositories
+            var catalogSettings = new CatalogSettings();
+            var commonSettings = new CommonSettings();
+            var categoryRepository = new CategoryRepository(connectionString);
+            var productRepository = new ProductRepository(connectionString);
+            var productCategory = new ProductCategoryMappingRepository(connectionString);
+            var shoppingCartRepository = new ShoppingCartItemRepository(connectionString);
 
-            var productService = new ProductService(
+            var _pictureBinaryRepository = new PictureBinaryRepository(connectionString);
+            var _pictureRepository = new PictureRepository(connectionString);
+            var _productAttributeCombinationRepository = new ProductAttributeCombinationRepository(connectionString);
+            var _productAttributeRepository = new ProductAttributeRepository(connectionString);
+            var _productAttributeValueRepository = new ProductAttributeValueRepository(connectionString);
+            var _productAvailabilityRangeRepository = new ProductAvailabilityRangeRepository(connectionString);
+            var _productCategoryMappingRepository = new ProductCategoryMappingRepository(connectionString);
+            var _productProductAttributeMappingRepository = new ProductProductAttributeMappingRepository(connectionString);
+            var _productProductTagMappingRepository = new ProductTagMappingRepository(connectionString);
+            var _productSpecificationAttributeMappingRepository = new ProductSpecificationAttributeRepository(connectionString);
+            var _specificationAttributeOptionRepository = new SpecificationAttributeOptionRepository(connectionString);
+            var _specificationAttributeRepository = new SpecificationAttributeRepository(connectionString);
+            var _productRepository = new ProductRepository(connectionString);
+            var _productManufacturerMappingRepository = new ProductManufacturerMappingRepository(connectionString);
+            var _productPictureRepository = new ProductPictureRepository(connectionString);
+            var _productReviewsRepository = new ProductReviewsRepository(connectionString);
+            var _tierPricesRepository = new TierPricesRepository(connectionString);
+            var _discountProductMappingRepository = new DiscountProductMappingRepository(connectionString);
+            var _productWarehouseInventoryRepository = new ProductWarehouseInventoryRepository(connectionString);
+            var _customerRepository = new CustomerRepository(connectionString);
+
+            //services
+            _categoryService = new CategoryService(catalogSettings, commonSettings, categoryRepository, productRepository, productCategory);
+            _menuService = new MenuService(_categoryService);
+            _cartService = new CartService(commonSettings, shoppingCartRepository);
+            _productService = new ProductService(
                 _pictureBinaryRepository,
                 _pictureRepository,
                 _productAttributeCombinationRepository,
@@ -100,10 +127,128 @@ namespace Hannon.UnitTest
                 _tierPricesRepository,
                 _discountProductMappingRepository,
                 _productWarehouseInventoryRepository
-                );
+            );
+            _customerService = new CustomerService(_customerRepository);
+        }
 
-            var productModel = productService.GetProductById(7);
+        [TestMethod()]
+        public void TestCreateCustomer()
+        {
+            var c = new Customer()
+            {
+                CustomerGuid = new Guid(),
+                Username = "test",
+                Email = "c@r.com",
+                EmailToRevalidate = string.Empty,
+                AdminComment = string.Empty,
+                IsTaxExempt = false,
+                AffiliateId = 0,
+                VendorId = 0,
+                HasShoppingCartItems = false,
+                RequireReLogin = false,
+                FailedLoginAttempts = 0,
+                Active = true,
+                Deleted = false,
+                IsSystemAccount = false,
+                SystemName = string.Empty,
+                LastIpAddress = String.Empty,
+                CreatedOnUtc = DateTime.UtcNow,
+                LastActivityDateUtc = DateTime.UtcNow,
+                RegisteredInStoreId = 1,
+                BillingAddressId = 1,
+                ShippingAddressId = 1
+            };
+            var r = _customerService.Create(c);
+            Assert.IsTrue(r.Status);
+        }
+
+        [TestMethod()]
+        public void TestGetCustomer()
+        {
+            var c = _customerService.GetCustomer(1);
+            Assert.IsNotNull(c);
+        }
+
+        [TestMethod()]
+        public void TestAddProductCart()
+        {
+            //4 Apple MacBook Pro 13 - inch
+            var p = _productService.GetProductById(4);
+            var c = _customerService.GetCustomer(1);
+            var item = new ShoppingCartItem()
+            {
+                ProductId = Int32.Parse(p.Id),
+                ShoppingCartTypeId = (int)ShoppingCartType.ShoppingCart,
+                CreatedOnUtc = DateTime.UtcNow,
+                CustomerId = c.Id,
+                Quantity = 1,
+                UpdatedOnUtc = DateTime.UtcNow
+            };
+            _cartService.AddProductToCart(item);
+        }
+        [TestMethod()]
+        public void TestGetProductCart()
+        {
+            var p = _productService.GetProductById(4);
+            Assert.IsNotNull(p);
+        }
+
+        [TestMethod()]
+        public void TestRemoveProductCart()
+        {
+
+        }
+        [TestMethod()]
+        public void TestTransaction()
+        {
+
+        }
+        [TestMethod()]
+        public void TestGetFeaturedProducts()
+        {
+
+        }
+
+        [TestMethod()]
+        public void TestSummaryProduct()
+        {
+
+        }
+
+        [TestMethod()]
+        public void TestDetailProduct()
+        {
+
+        }
+
+        [TestMethod()]
+        public void TestSignIn()
+        {
+
+        }
+
+        [TestMethod()]
+        public void TestRegister()
+        {
+
+        }
+
+        [TestMethod()]
+        public void VerifyCatalogWithSubMenus()
+        {
+            var menu = _menuService.LoadCategories();
+            Assert.IsNotNull(menu);
+            var electronics = menu.MenuItems.Where(x => x.MenuId == 5).FirstOrDefault();
+            Assert.IsTrue(electronics.SubMenus.Count > 0, "c.GetCategories");
+        }
+
+        [TestMethod]
+        [Ignore()]
+        public void VerifyProductService()
+        {
+            var productModel = _productService.GetProductById(7);
             Assert.IsNotNull(productModel);
+            Assert.IsTrue(productModel.ProductPictures.Count > 0);
         }
 
         [TestMethod]
@@ -113,11 +258,6 @@ namespace Hannon.UnitTest
             var p = new ProductRepository(connectionString);
             var product = p.GetById(7);
             Assert.IsNotNull(product);
-
-            var c = new CategoryRepository(connectionString);
-            var count = c.Get().Count;
-            Assert.IsNotNull(c.Get());
-            Assert.IsTrue(count > 0, "c.GetCategories");
         }
 
         [TestMethod]
@@ -185,10 +325,10 @@ namespace Hannon.UnitTest
 
             var mockHttpContext = MockHttpSession.FakeHttpContext();
             var mockSession = mockHttpContext.Session;
-            mockSession["AuthCode"]= "123456";
+            mockSession["AuthCode"] = "123456";
             var r = acct.VerifyCode(model);
             Assert.IsNotNull(r);
-            
+
             //RedirectResult results = (RedirectResult)acct.LogOn(userName, password, rememberMe, returnUrl);
             //Assert.AreEqual(returnUrl, results.Url);
             //Assert.AreEqual(userName, acct.Session["txtUserName"]);

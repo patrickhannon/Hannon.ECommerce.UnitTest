@@ -12,7 +12,7 @@ using System.Diagnostics;
 namespace Hannon.UnitTest
 {
     [TestClass]
-    class DataLayerUnitTests
+    public class DataLayerUnitTests
     {
         public string connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
 
