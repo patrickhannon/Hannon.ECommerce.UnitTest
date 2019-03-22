@@ -183,5 +183,10 @@ C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\xunit.runner.visualst
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\xunit.runner.reporters.net452.dll
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\xunit.runner.utility.net452.dll
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\xunit.abstractions.dll
+C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\Hannon.PayFabric.exe
+C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\RestSharp.dll
+C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\Hannon.PayFabric.pdb
+C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\Hannon.PayFabric.exe.config
+C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\RestSharp.xml
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\x86\e_sqlite3.dll
 C:\SourceControl\Hannon.UnitTest\Hannon.UnitTest\bin\Debug\x64\e_sqlite3.dll

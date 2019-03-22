@@ -21,8 +21,10 @@ using ECommerce.Services.Customer.Impl;
 using ECommerce.Services.Impl;
 using ECommerce.Services.Menu;
 using ECommerce.Services.Menu.Impl;
+using Hannon.PayFabric;
 using Moq;
 using Nop.Core.Domain.Common;
+using System.Diagnostics;
 
 namespace Hannon.UnitTest
 {
@@ -36,6 +38,9 @@ namespace Hannon.UnitTest
         private string _twoFactorAuthFromPhone;
         private string _authToken;
         private string _accountSID;
+        private static string _payfabricDeviceId;
+        private static string _payfabricDevicePassword;
+        private static string _payfabricDeviceUrl;
         private int _twoFactorTimeOut;
         private ITwoFactorAuth _twoFactorAuth;
         public string connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
@@ -46,9 +51,11 @@ namespace Hannon.UnitTest
         private ICartService _cartService;
         private IProductService _productService;
         private ICustomerService _customerService;
-
+        private ITransaction _transaction;
+        
         public ECommerceUnitTests()
         {
+
             int.TryParse(ConfigurationManager.AppSettings["TwoFactorAuthTimeSpan"], out _twoFactorAuthTimeSpan);
             int.TryParse(ConfigurationManager.AppSettings["TwoFactorTimeOut"], out _twoFactorTimeOut);
             bool.TryParse(ConfigurationManager.AppSettings["TwoFactorEnabled"], out _twoFactorEnabled);
@@ -59,6 +66,12 @@ namespace Hannon.UnitTest
             _emailPassword = ConfigurationManager.AppSettings["EmailPassword"];
             _authToken = ConfigurationManager.AppSettings["TwilioAuthToken"];
             _accountSID = ConfigurationManager.AppSettings["TwilioAccountSID"];
+
+            //Get payfabric configs
+            _payfabricDeviceId = ConfigurationManager.AppSettings["PayfabricDeviceId"];
+            _payfabricDevicePassword = ConfigurationManager.AppSettings["PayfabricDevicePassword"];
+            _payfabricDeviceUrl = ConfigurationManager.AppSettings["PayfabricDeviceUrl"];
+
 
             var smsConfigs = new InitTwoFactor()
             {
@@ -136,7 +149,7 @@ namespace Hannon.UnitTest
         {
             var c = new Customer()
             {
-                CustomerGuid = new Guid(),
+                CustomerGuid = Guid.NewGuid(),
                 Username = "test",
                 Email = "c@r.com",
                 EmailToRevalidate = string.Empty,
@@ -154,30 +167,27 @@ namespace Hannon.UnitTest
                 LastIpAddress = String.Empty,
                 CreatedOnUtc = DateTime.UtcNow,
                 LastActivityDateUtc = DateTime.UtcNow,
-                RegisteredInStoreId = 1,
-                BillingAddressId = 1,
-                ShippingAddressId = 1
+                RegisteredInStoreId = 1
             };
             var r = _customerService.Create(c);
             Assert.IsTrue(r.Status);
         }
-
         [TestMethod()]
         public void TestGetCustomer()
         {
-            var c = _customerService.GetCustomer(1);
+            var c = _customerService.GetCustomer(2);
             Assert.IsNotNull(c);
         }
-
         [TestMethod()]
         public void TestAddProductCart()
         {
             //4 Apple MacBook Pro 13 - inch
             var p = _productService.GetProductById(4);
-            var c = _customerService.GetCustomer(1);
+            var c = _customerService.GetCustomer(2);
             var item = new ShoppingCartItem()
             {
                 ProductId = Int32.Parse(p.Id),
+                StoreId = 1,
                 ShoppingCartTypeId = (int)ShoppingCartType.ShoppingCart,
                 CreatedOnUtc = DateTime.UtcNow,
                 CustomerId = c.Id,
@@ -187,7 +197,7 @@ namespace Hannon.UnitTest
             _cartService.AddProductToCart(item);
         }
         [TestMethod()]
-        public void TestGetProductCart()
+        public void TestGetProductById()
         {
             var p = _productService.GetProductById(4);
             Assert.IsNotNull(p);
@@ -199,9 +209,20 @@ namespace Hannon.UnitTest
 
         }
         [TestMethod()]
-        public void TestTransaction()
+        public void TestPayfabricTokenCreate()
         {
-
+            _transaction = new PayfabricTransaction(_payfabricDeviceId,
+                _payfabricDevicePassword, _payfabricDeviceUrl);
+            var response = _transaction.CreateSecurityToken();
+            Assert.IsTrue(response.StatusCode.Equals("OK"));
+        }
+        [TestMethod()]
+        public void TestPayfabricCreateTransaction()
+        {
+            _transaction = new PayfabricTransaction(_payfabricDeviceId,
+                _payfabricDevicePassword, _payfabricDeviceUrl);
+            var response = _transaction.CreateSecurityToken();
+            Assert.IsTrue(response.StatusCode.Equals("OK"));
         }
         [TestMethod()]
         public void TestGetFeaturedProducts()
@@ -212,14 +233,64 @@ namespace Hannon.UnitTest
         [TestMethod()]
         public void TestSummaryProduct()
         {
+            //6 Samsung Series 9 NP900X4C Premium Ultrabook
+            var p = _productService.GetProductById(6);
+            //picture
+            var pictures = p.ProductPictures;
+            //name
+            var name = p.Name;
+            var shortDesc = p.ShortDescription;
+            var longDesc = p.FullDescription;
+            var metaDesc = p.MetaDescription;
+            var metaTitle = p.MetaTitle;
 
+            //from price 
+            var price = p.Price;
+            //test add to cart link
+            
+            //stars
+            var stars = p.ProductReviews;
         }
 
         [TestMethod()]
         public void TestDetailProduct()
         {
-
+            //9 Lenovo Thinkpad X1 Carbon Laptop
+            var p = _productService.GetProductById(9);
+            //picture
+            //name
+            //short description
+            //full description
+            //from price 
+            //stars
+            //show details link
+            //add to wish list link
+            //product tags 
         }
+
+        [TestMethod()]
+        public void TestPopularTags() { }
+
+        [TestMethod()]
+        public void TestGetWishList(){}
+
+        [TestMethod()]
+        public void TestSearch() { }
+
+        [TestMethod()]
+        public void TestGetMyAccount() { }
+
+        [TestMethod()]
+        public void TestGetMyShoppingCart() { }
+
+        [TestMethod()]
+        public void ApplyForVendorAccount() { }
+
+        [TestMethod()]
+        public void TestRecentlyViewedProducts() { }
+
+        [TestMethod()]
+        public void TestPlaceOrder() { }
 
         [TestMethod()]
         public void TestSignIn()
