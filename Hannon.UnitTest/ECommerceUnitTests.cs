@@ -115,9 +115,9 @@ namespace Hannon.UnitTest
             var _discountProductMappingRepository = new DiscountProductMappingRepository(connectionString);
             var _productWarehouseInventoryRepository = new ProductWarehouseInventoryRepository(connectionString);
             var _customerRepository = new CustomerRepository(connectionString);
-
             //services
-            _categoryService = new CategoryService(catalogSettings, commonSettings, categoryRepository, productRepository, productCategory);
+            _categoryService = new CategoryService(catalogSettings, commonSettings, categoryRepository, productRepository, productCategory );
+
             _menuService = new MenuService(_categoryService);
             _cartService = new CartService(commonSettings, shoppingCartRepository);
             _productService = new ProductService(
@@ -172,12 +172,14 @@ namespace Hannon.UnitTest
             var r = _customerService.Create(c);
             Assert.IsTrue(r.Status);
         }
+
         [TestMethod()]
         public void TestGetCustomer()
         {
             var c = _customerService.GetCustomer(2);
             Assert.IsNotNull(c);
         }
+
         [TestMethod()]
         public void TestAddProductCart()
         {
@@ -196,6 +198,7 @@ namespace Hannon.UnitTest
             };
             _cartService.AddProductToCart(item);
         }
+
         [TestMethod()]
         public void TestGetProductById()
         {
@@ -208,6 +211,7 @@ namespace Hannon.UnitTest
         {
 
         }
+
         [TestMethod()]
         public void TestPayfabricTokenCreate()
         {
@@ -216,6 +220,7 @@ namespace Hannon.UnitTest
             var response = _transaction.CreateSecurityToken();
             Assert.IsTrue(response.StatusCode.Equals("OK"));
         }
+
         [TestMethod()]
         public void TestPayfabricCreateTransaction()
         {
@@ -224,10 +229,12 @@ namespace Hannon.UnitTest
             var response = _transaction.CreateSecurityToken();
             Assert.IsTrue(response.StatusCode.Equals("OK"));
         }
+
         [TestMethod()]
         public void TestGetFeaturedProducts()
         {
-
+            //Use flag IsFeaturedProduct in [Product_Category_Mapping]
+            var featured = _categoryService.GetFeaturedProducts(true);
         }
 
         [TestMethod()]
@@ -269,7 +276,18 @@ namespace Hannon.UnitTest
         }
 
         [TestMethod()]
-        public void TestPopularTags() { }
+        public void TestAllProductsBelongingToCategory()
+        {
+            //2 Desktops
+            var products = _categoryService.GetAllProductsBelongingToCategory(2);
+            Assert.IsTrue(products.Any());
+        }
+
+        [TestMethod()]
+        public void TestGetPopularTags()
+        {
+
+        }
 
         [TestMethod()]
         public void TestGetWishList(){}
